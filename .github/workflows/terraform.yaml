@@ -1,0 +1,144 @@
+name: terraform
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - "scripts/changed-stacks.sh"
+      - ".github/workflows/terraform.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TF_VERSION: 1.16.5
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  WIF_PROVIDER: projects/1000659746606/locations/global/workloadIdentityPools/github/providers/github-actions
+  PROJECT_SA_DOMAIN: project-bb8996af-ebec-47fd-869.iam.gserviceaccount.com
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive -diff terraform
+      - name: Misconfiguration scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: terraform
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.diff.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: echo "stacks=$(scripts/changed-stacks.sh "$BASE" "$HEAD")" >> "$GITHUB_OUTPUT"
+
+  plan:
+    needs: [lint, changes]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.stacks != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJSON(needs.changes.outputs.stacks) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.stack }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: tf-plan@${{ env.PROJECT_SA_DOMAIN }}
+      - run: terraform init
+      # tf-plan has read-only state access, so plans can't take the state lock.
+      - run: terraform plan -lock=false -out tfplan
+      - name: Plan summary
+        run: |
+          {
+            echo "### \`${{ matrix.stack }}\`"
+            echo '```'
+            terraform show -no-color tfplan | tail -c 60000
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Block deletions unless the PR has the allow-destroy label
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'allow-destroy') }}
+        run: |
+          deleted=$(terraform show -json tfplan | jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | .address')
+          if [ -n "$deleted" ]; then
+            echo "::error::This plan deletes or replaces resources. Add the allow-destroy label if intended."
+            echo "$deleted"
+            exit 1
+          fi
+
+  apply:
+    needs: [lint, changes]
+    if: github.event_name == 'push' && needs.changes.outputs.stacks != '[]'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: terraform-apply
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: tf-apply@${{ env.PROJECT_SA_DOMAIN }}
+      - name: Apply changed stacks in order
+        env:
+          STACKS: ${{ needs.changes.outputs.stacks }}
+        run: |
+          for stack in $(jq -r '.[]' <<<"$STACKS"); do
+            echo "::group::$stack"
+            terraform -chdir="$stack" init
+            terraform -chdir="$stack" apply -auto-approve
+            echo "::endgroup::"
+          done
+
+  # Single, stable check name to require in the branch ruleset (matrix job names vary).
+  terraform:
+    if: always()
+    needs: [lint, changes, plan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: test "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = false
