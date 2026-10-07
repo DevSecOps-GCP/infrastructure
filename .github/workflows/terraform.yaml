@@ -81,6 +81,22 @@ jobs:
         with:
           workload_identity_provider: ${{ env.WIF_PROVIDER }}
           service_account: tf-plan@${{ env.PROJECT_SA_DOMAIN }}
+      # On first init the GCS backend writes an empty state under a lock, which read-only
+      # tf-plan can't do. A never-applied stack is planned against an empty local state
+      # instead; the first apply on main creates the real one.
+      - name: Use a local backend if the stack has no state yet
+        run: |
+          bucket=$(sed -n 's/^ *bucket *= *"\(.*\)"/\1/p' backend.tf)
+          prefix=$(sed -n 's/^ *prefix *= *"\(.*\)"/\1/p' backend.tf)
+          if out=$(gcloud storage ls "gs://$bucket/$prefix/" 2>&1); then
+            exit 0
+          elif grep -q "matched no objects" <<<"$out"; then
+            echo "::notice::$prefix has no state yet, planning against an empty local state"
+            printf 'terraform {\n  backend "local" {}\n}\n' > override.tf
+          else
+            echo "$out"
+            exit 1
+          fi
       - run: terraform init
       # tf-plan has read-only state access, so plans can't take the state lock.
       - run: terraform plan -lock=false -out tfplan
