@@ -12,8 +12,11 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   attribute_condition                = "assertion.repository_owner_id == '${var.github_org_id}'"
 
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
+    "google.subject"          = "assertion.sub"
+    "attribute.repository_id" = "assertion.repository_id"
+    # Set only for jobs in the "production" environment running on main, so GCP itself
+    # enforces "apply from main", not just the GitHub environment settings.
+    "attribute.apply_repository_id" = "assertion.sub.endsWith(':environment:production') && assertion.ref == 'refs/heads/main' ? assertion.repository_id : 'none'"
   }
 
   oidc {
