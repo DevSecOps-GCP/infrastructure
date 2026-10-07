@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan*
+crash.log
+crash.*.log
+# Local-only overrides, e.g. the local backend used for the very first bootstrap apply
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Secrets never live in Git
+.env
+*.pem
+*.key
+*credentials*.json

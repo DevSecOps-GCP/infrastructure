@@ -1,0 +1,29 @@
+variable "org_id" {
+  type = string
+}
+
+variable "billing_account" {
+  type = string
+}
+
+variable "project_id" {
+  description = "Seed project: Terraform state and CI identities"
+  type        = string
+}
+
+variable "region" {
+  type = string
+}
+
+variable "folder_name" {
+  type = string
+}
+
+variable "github_org_id" {
+  description = "Numeric GitHub org id (immutable, unlike the org name)"
+  type        = string
+}
+
+variable "infrastructure_repo" {
+  type = string
+}

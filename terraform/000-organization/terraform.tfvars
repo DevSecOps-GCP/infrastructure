@@ -1,0 +1,7 @@
+org_id              = "20760905267"
+billing_account     = "015476-22A438-BDFC7F"
+project_id          = "project-bb8996af-ebec-47fd-869"
+region              = "us-central1"
+folder_name         = "devsecopsglobal"
+github_org_id       = "338436261"
+infrastructure_repo = "DevSecOps-GCP/infrastructure"
