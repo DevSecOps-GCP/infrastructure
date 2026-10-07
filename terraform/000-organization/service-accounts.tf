@@ -8,19 +8,28 @@ locals {
 
   apply_folder_roles = [
     "roles/artifactregistry.admin",
+    "roles/certificatemanager.owner",
     "roles/cloudkms.admin",
+    "roles/cloudsql.admin",
+    "roles/compute.instanceAdmin.v1",
+    "roles/compute.loadBalancerAdmin",
+    "roles/compute.networkAdmin",
+    "roles/compute.securityAdmin",
     "roles/compute.xpnAdmin",
     "roles/container.admin",
     "roles/dns.admin",
-    "roles/editor",
     "roles/iam.serviceAccountAdmin",
+    "roles/iam.serviceAccountUser",
+    "roles/redis.admin",
     "roles/resourcemanager.projectCreator",
     "roles/resourcemanager.projectIamAdmin",
+    "roles/servicenetworking.networksAdmin",
+    "roles/serviceusage.serviceUsageAdmin",
     "roles/storage.admin",
   ]
 }
 
-# Pull requests: read-only plan.
+# Any branch of the infrastructure repo: read-only plan.
 resource "google_service_account" "tf_plan" {
   account_id   = "tf-plan"
   display_name = "Terraform plan"
@@ -39,24 +48,26 @@ resource "google_service_account" "tf_apply" {
 resource "google_service_account_iam_member" "tf_plan_wif" {
   service_account_id = google_service_account.tf_plan.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${local.pool}/attribute.repository/${var.infrastructure_repo}"
+  member             = "principalSet://iam.googleapis.com/${local.pool}/attribute.repository_id/${var.infrastructure_repo_id}"
 }
 
 resource "google_service_account_iam_member" "tf_apply_wif" {
   service_account_id = google_service_account.tf_apply.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principal://iam.googleapis.com/${local.pool}/subject/repo:${var.infrastructure_repo}:environment:production"
+  member             = "principalSet://iam.googleapis.com/${local.pool}/attribute.apply_repository_id/${var.infrastructure_repo_id}"
 }
 
+# Plan reads state without locking (terraform plan -lock=false), so a PR branch can't
+# overwrite any stack's state.
 resource "google_storage_bucket_iam_member" "tfstate" {
   for_each = {
-    plan  = google_service_account.tf_plan.member
-    apply = google_service_account.tf_apply.member
+    plan  = { role = "roles/storage.objectViewer", member = google_service_account.tf_plan.member }
+    apply = { role = "roles/storage.objectUser", member = google_service_account.tf_apply.member }
   }
 
   bucket = google_storage_bucket.tfstate.name
-  role   = "roles/storage.objectUser"
-  member = each.value
+  role   = each.value.role
+  member = each.value.member
 }
 
 resource "google_folder_iam_member" "tf_plan" {
@@ -75,17 +86,7 @@ resource "google_folder_iam_member" "tf_apply" {
   member = google_service_account.tf_apply.member
 }
 
-resource "google_organization_iam_member" "tf_plan" {
-  org_id = var.org_id
-  role   = "roles/orgpolicy.policyViewer"
-  member = google_service_account.tf_plan.member
-}
 
-resource "google_organization_iam_member" "tf_apply" {
-  org_id = var.org_id
-  role   = "roles/orgpolicy.policyAdmin"
-  member = google_service_account.tf_apply.member
-}
 
 resource "google_billing_account_iam_member" "tf_apply" {
   billing_account_id = var.billing_account

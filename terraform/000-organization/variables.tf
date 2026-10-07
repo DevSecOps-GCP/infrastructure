@@ -24,6 +24,12 @@ variable "github_org_id" {
   type        = string
 }
 
-variable "infrastructure_repo" {
-  type = string
+variable "infrastructure_repo_id" {
+  description = "Numeric id of the infrastructure GitHub repo (survives renames, changes if recreated)"
+  type        = string
+}
+
+variable "wireguard_instance" {
+  description = "The only VM in the folder allowed an external IP"
+  type        = string
 }
