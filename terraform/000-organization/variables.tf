@@ -12,7 +12,13 @@ variable "project_id" {
 }
 
 variable "region" {
-  type = string
+  description = "Region for all workloads; the folder may only create resources here"
+  type        = string
+}
+
+variable "state_bucket_location" {
+  description = "Location of the Terraform state bucket, independent of the workload region"
+  type        = string
 }
 
 variable "folder_name" {

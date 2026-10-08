@@ -6,10 +6,6 @@ output "billing_account" {
   value = var.billing_account
 }
 
-output "region" {
-  value = var.region
-}
-
 output "folder_id" {
   value = google_folder.this.folder_id
 }

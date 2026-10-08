@@ -25,7 +25,7 @@ resource "google_compute_subnetwork_iam_member" "network_user" {
   for_each = local.subnet_users
 
   project    = local.host_project
-  region     = local.region
+  region     = var.region
   subnetwork = google_compute_subnetwork.this[each.value.subnet].name
   role       = "roles/compute.networkUser"
   member     = each.value.member

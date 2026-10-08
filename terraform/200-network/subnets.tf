@@ -2,8 +2,8 @@ resource "google_compute_subnetwork" "this" {
   for_each = var.subnets
 
   project                  = local.host_project
-  name                     = "${each.key}-${local.region}"
-  region                   = local.region
+  name                     = "${each.key}-${var.region}"
+  region                   = var.region
   network                  = google_compute_network.this.id
   ip_cidr_range            = each.value.cidr
   private_ip_google_access = true

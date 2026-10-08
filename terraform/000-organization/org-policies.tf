@@ -48,7 +48,7 @@ resource "google_org_policy_policy" "resource_locations" {
   spec {
     rules {
       values {
-        allowed_values = ["in:us-locations"]
+        allowed_values = ["in:${var.region}-locations"]
       }
     }
   }

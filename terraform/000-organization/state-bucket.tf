@@ -1,6 +1,6 @@
 resource "google_storage_bucket" "tfstate" {
   name                        = "${var.project_id}-tfstate"
-  location                    = upper(var.region)
+  location                    = var.state_bucket_location
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
 
