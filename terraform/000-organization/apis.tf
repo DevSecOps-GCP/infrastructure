@@ -6,6 +6,7 @@ resource "google_project_service" "this" {
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "orgpolicy.googleapis.com",
+    "servicenetworking.googleapis.com",
     "serviceusage.googleapis.com",
     "storage.googleapis.com",
     "sts.googleapis.com",

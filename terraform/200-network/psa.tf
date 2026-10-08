@@ -12,4 +12,5 @@ resource "google_service_networking_connection" "private_services" {
   network                 = google_compute_network.this.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_services.name]
+  update_on_creation_fail = true
 }
