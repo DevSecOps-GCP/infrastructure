@@ -1,3 +1,8 @@
+variable "region" {
+  description = "Where subnets, NAT and every regional workload live"
+  type        = string
+}
+
 variable "network_name" {
   type = string
 }

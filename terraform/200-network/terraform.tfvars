@@ -1,3 +1,4 @@
+region       = "me-central1"
 network_name = "devsecopsglobal-vpc"
 
 subnets = {
