@@ -1,5 +1,3 @@
-# Some APIs bill the caller's project rather than the target one, and the CI identities
-# live here, so those APIs must be enabled in the seed project too.
 resource "google_project_service" "this" {
   for_each = toset([
     "billingbudgets.googleapis.com",
