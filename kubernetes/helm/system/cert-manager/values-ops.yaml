@@ -1,0 +1,30 @@
+crds:
+  enabled: true
+  keep: true
+
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: cert-manager@devsecopsglobal-ops.iam.gserviceaccount.com
+
+# Inside the VPC the private zone internal.devsecopsglobal.tech hides the public
+# _acme-challenge records, so propagation checks use public resolvers.
+extraArgs:
+  - --dns01-recursive-nameservers-only
+  - --dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53
+
+resources:
+  requests: { cpu: 20m, memory: 64Mi }
+  limits: { memory: 128Mi }
+
+webhook:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 64Mi }
+
+cainjector:
+  resources:
+    requests: { cpu: 10m, memory: 64Mi }
+    limits: { memory: 128Mi }
+
+startupapicheck:
+  enabled: false
