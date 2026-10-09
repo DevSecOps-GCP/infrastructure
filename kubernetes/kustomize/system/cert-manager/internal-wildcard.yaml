@@ -12,7 +12,7 @@ spec:
   secretName: internal-wildcard-tls
   issuerRef:
     kind: ClusterIssuer
-    name: letsencrypt-staging
+    name: letsencrypt
   dnsNames:
     - "*.internal.devsecopsglobal.tech"
   privateKey:
