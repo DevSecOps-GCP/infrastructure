@@ -24,6 +24,8 @@ env:
   TF_VERSION: 1.16.5
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
+  # Values kept out of the public repository; masked in logs and marked sensitive in Terraform.
+  TF_VAR_operator_email: ${{ secrets.TF_OPERATOR_EMAIL }}
   WIF_PROVIDER: projects/1000659746606/locations/global/workloadIdentityPools/github/providers/github-actions
   PROJECT_SA_DOMAIN: project-bb8996af-ebec-47fd-869.iam.gserviceaccount.com
 
