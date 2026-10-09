@@ -1,0 +1,39 @@
+# Platform tools: may manage cluster-scoped resources (CRDs, ClusterRoles, webhooks).
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: system
+  namespace: argocd
+spec:
+  description: Platform components
+  sourceRepos:
+    - https://github.com/DevSecOps-GCP/infrastructure
+    - https://*.github.io/*
+    - https://charts.*
+  destinations:
+    - server: "*"
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+# Application workloads: namespaced resources only.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  description: Application workloads
+  sourceRepos:
+    - https://github.com/DevSecOps-GCP/infrastructure
+    - https://github.com/DevSecOps-GCP/devsecopsglobal
+  destinations:
+    - server: "*"
+      namespace: "*"
+  clusterResourceWhitelist: []
+  namespaceResourceBlacklist:
+    - group: ""
+      kind: ResourceQuota
+    - group: ""
+      kind: LimitRange
