@@ -1,0 +1,5 @@
+argocd_chart_version      = "10.10.1"
+argocd_apps_chart_version = "2.0.6"
+release_namespace         = "argocd-release"
+repo_url                  = "https://github.com/DevSecOps-GCP/infrastructure"
+root_path                 = "argocd/bootstrap"
