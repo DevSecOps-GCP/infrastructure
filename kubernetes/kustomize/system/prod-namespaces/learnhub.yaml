@@ -1,0 +1,9 @@
+# Application namespaces are owned by the platform; the "apps" AppProject can't create
+# cluster-scoped resources.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: learnhub
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted

@@ -1,0 +1,25 @@
+# Registers the prod cluster. It holds no credentials: ArgoCD authenticates as its Google
+# service account (Workload Identity) through argocd-k8s-auth, against the IAM-protected
+# DNS endpoint, whose certificate is publicly trusted.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-prod
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+type: Opaque
+stringData:
+  name: prod
+  server: https://gke-24ab6e3222c24fcead4cc194c529b54f9b95-139277399158.me-central1.gke.goog
+  config: |
+    {
+      "execProviderConfig": {
+        "command": "argocd-k8s-auth",
+        "args": ["gcp"],
+        "apiVersion": "client.authentication.k8s.io/v1beta1"
+      },
+      "tlsClientConfig": {
+        "insecure": false
+      }
+    }
