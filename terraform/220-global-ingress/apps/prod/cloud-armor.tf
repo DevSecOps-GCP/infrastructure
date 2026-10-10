@@ -16,6 +16,8 @@ locals {
 # Attached to the app's backend services through a GCPBackendPolicy. Rules are evaluated
 # by priority and the first match wins, so the WAF rules run before the rate limit.
 resource "google_compute_security_policy" "edge" {
+  count = var.cloud_armor_enabled ? 1 : 0
+
   project     = local.project
   name        = "learnhub-edge"
   description = "WAF and per-IP rate limiting in front of the LearnHub Gateway"
