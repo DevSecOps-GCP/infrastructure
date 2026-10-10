@@ -1,7 +1,7 @@
 # Production values for deploy/frontend in DevSecOps-GCP/devsecopsglobal.
 image:
   # Release commit; promotion PRs from the app repository update it.
-  tag: 6e9681a960484af860875b84993010cbadc4edf8
+  tag: 3ba9277eef0e3ca041e4d0ceee7e951dcdccd3bf
 
 route:
   enabled: true
