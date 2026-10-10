@@ -31,6 +31,7 @@ locals {
         "container.googleapis.com",
         "iamcredentials.googleapis.com",
         "redis.googleapis.com",
+        "servicenetworking.googleapis.com", # Memorystore on the Shared VPC's private services access
         "sqladmin.googleapis.com",
         "storage.googleapis.com",
       ]
