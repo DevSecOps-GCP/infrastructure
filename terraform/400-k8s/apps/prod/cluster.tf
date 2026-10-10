@@ -70,12 +70,13 @@ resource "google_container_cluster" "this" {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
 
-  # Application metrics are pushed to Prometheus on the ops cluster.
+  # Managed Prometheus is always on in Autopilot and only collects targets declared in
+  # PodMonitoring resources. Application metrics are pushed to Prometheus on the ops cluster.
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS"]
 
     managed_prometheus {
-      enabled = false
+      enabled = true
     }
   }
 
