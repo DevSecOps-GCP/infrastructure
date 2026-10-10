@@ -33,6 +33,20 @@ resource "google_compute_firewall" "allow_prod_to_ops" {
   }
 }
 
+# Internal load balancer proxies reach only the backends their routes point to.
+resource "google_compute_firewall" "allow_proxies_to_ops" {
+  project       = local.host_project
+  name          = "allow-proxies-to-ops"
+  network       = google_compute_network.this.id
+  direction     = "INGRESS"
+  source_ranges = [var.proxy_only_range]
+  target_tags   = ["gke-ops"]
+
+  allow {
+    protocol = "tcp"
+  }
+}
+
 resource "google_compute_firewall" "allow_health_checks" {
   project       = local.host_project
   name          = "allow-health-checks"

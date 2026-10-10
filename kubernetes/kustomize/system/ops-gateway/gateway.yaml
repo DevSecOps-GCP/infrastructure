@@ -4,7 +4,7 @@ metadata:
   name: ops
   namespace: internal-ingress
 spec:
-  gatewayClassName: gke-l7-global-external-managed
+  gatewayClassName: gke-l7-rilb
   addresses:
     - type: NamedAddress
       value: ops-gateway
