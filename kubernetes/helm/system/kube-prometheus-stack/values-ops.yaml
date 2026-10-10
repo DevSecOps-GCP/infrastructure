@@ -1,0 +1,85 @@
+# Prometheus scrapes the ops cluster. Grafana shows both clusters: prod metrics come from
+# Google Managed Prometheus through prometheus-frontend (kubernetes/kustomize/system/monitoring).
+
+# Admission webhook certificates from cert-manager instead of Helm hook Jobs.
+prometheusOperator:
+  admissionWebhooks:
+    certManager:
+      enabled: true
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+prometheus:
+  prometheusSpec:
+    externalUrl: https://prometheus.internal.devsecopsglobal.tech
+    retention: 7d
+    retentionSize: 18GB
+    # Select every ServiceMonitor, PodMonitor, Probe and rule in the cluster, not only
+    # those created by this release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests: { cpu: 200m, memory: 1Gi }
+      limits: { memory: 2Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard-rwo
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 20m, memory: 64Mi }
+      limits: { memory: 128Mi }
+
+grafana:
+  # Created once outside Git (keys admin-user, admin-password). The chart's generated
+  # password would change on every ArgoCD render and restart Grafana.
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  # Dashboards and data sources are provisioned from Git; nothing to persist.
+  persistence:
+    enabled: false
+  grafana.ini:
+    server:
+      root_url: https://grafana.internal.devsecopsglobal.tech
+    users:
+      allow_sign_up: false
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+  additionalDataSources:
+    - name: Prometheus (prod)
+      uid: prometheus-prod
+      type: prometheus
+      access: proxy
+      url: http://prometheus-frontend.monitoring.svc:9090
+      jsonData:
+        httpMethod: GET
+        prometheusType: Prometheus
+        prometheusVersion: 2.40.0
+        timeInterval: 30s
+        queryTimeout: 2m
+        timeout: 120
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+# GKE manages the control plane and Dataplane V2 replaces kube-proxy: nothing to scrape.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false

@@ -1,0 +1,74 @@
+# Query proxy for Google Managed Prometheus: serves the Prometheus HTTP API for the prod
+# project, authenticating as its Google service account (Workload Identity,
+# roles/monitoring.viewer on prod). Grafana's "Prometheus (prod)" data source points here.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-frontend
+  namespace: monitoring
+  annotations:
+    iam.gke.io/gcp-service-account: prometheus-frontend@devsecopsglobal-ops.iam.gserviceaccount.com
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-frontend
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: prometheus-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus-frontend
+    spec:
+      serviceAccountName: prometheus-frontend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          image: gke.gcr.io/prometheus-engine/frontend:v0.17.2-gke.2
+          args:
+            - --web.listen-address=:9090
+            - --query.project-id=devsecopsglobal-prod
+          ports:
+            - name: web
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: web
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: web
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 128Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-frontend
+  namespace: monitoring
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus-frontend
+  ports:
+    - name: web
+      port: 9090
+      targetPort: web

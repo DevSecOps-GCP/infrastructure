@@ -80,6 +80,10 @@ route:
     name: app
     namespace: public-ingress
 
+metrics:
+  podMonitoring:
+    enabled: true
+
 networkPolicy:
   privateServicesCidr: 10.50.0.0/20
 

@@ -1,1 +1,1 @@
-hostnames = ["argocd", "vault"]
+hostnames = ["argocd", "grafana", "prometheus", "vault"]
