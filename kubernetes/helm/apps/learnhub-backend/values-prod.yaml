@@ -1,7 +1,7 @@
 # Production values for deploy/backend in DevSecOps-GCP/devsecopsglobal.
 image:
   # Release commit; promotion PRs from the app repository update it.
-  tag: 3ba9277eef0e3ca041e4d0ceee7e951dcdccd3bf
+  tag: 71bc7883c18f4d8abd067dd14c9b26a7ac932422
 
 serviceAccount:
   # terraform/540-gcs/apps/prod: backend_service_account
