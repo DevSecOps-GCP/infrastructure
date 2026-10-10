@@ -78,6 +78,25 @@ resource "google_folder_iam_member" "tf_plan" {
   member = google_service_account.tf_plan.member
 }
 
+# Reads Terraform makes when refreshing resources that roles/viewer doesn't cover. The
+# Memorystore AUTH string is also stored in state, which tf-plan can already read.
+resource "google_organization_iam_custom_role" "tf_plan_refresh" {
+  org_id      = var.org_id
+  role_id     = "terraformPlanRefresh"
+  title       = "Terraform plan refresh"
+  description = "Read permissions for Terraform refresh that roles/viewer doesn't include"
+  permissions = [
+    "redis.instances.getAuthString",
+    "storage.buckets.get",
+  ]
+}
+
+resource "google_folder_iam_member" "tf_plan_refresh" {
+  folder = google_folder.this.name
+  role   = google_organization_iam_custom_role.tf_plan_refresh.name
+  member = google_service_account.tf_plan.member
+}
+
 resource "google_folder_iam_member" "tf_apply" {
   for_each = toset(local.apply_folder_roles)
 
@@ -85,8 +104,6 @@ resource "google_folder_iam_member" "tf_apply" {
   role   = each.value
   member = google_service_account.tf_apply.member
 }
-
-
 
 resource "google_billing_account_iam_member" "tf_apply" {
   billing_account_id = var.billing_account
