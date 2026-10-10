@@ -1,0 +1,19 @@
+# Spot capacity first, on-demand when Spot is unavailable, and back to Spot once it returns.
+# podFamily keeps Autopilot's pod-based billing (no specific machine series).
+apiVersion: cloud.google.com/v1
+kind: ComputeClass
+metadata:
+  name: spot-first
+spec:
+  autopilot:
+    enabled: true
+  nodePoolAutoCreation:
+    enabled: true
+  priorities:
+    - podFamily: general-purpose
+      spot: true
+    - podFamily: general-purpose
+      spot: false
+  activeMigration:
+    optimizeRulePriority: true
+  whenUnsatisfiable: DoNotScaleUp

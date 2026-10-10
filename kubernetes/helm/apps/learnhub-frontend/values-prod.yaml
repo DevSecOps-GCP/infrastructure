@@ -1,0 +1,13 @@
+# Production values for deploy/frontend in DevSecOps-GCP/devsecopsglobal.
+image:
+  # Release commit; promotion PRs from the app repository update it.
+  tag: 6e9681a960484af860875b84993010cbadc4edf8
+
+computeClass: spot-first
+
+route:
+  enabled: true
+  hostname: app.devsecopsglobal.tech
+  gateway:
+    name: app
+    namespace: public-ingress
