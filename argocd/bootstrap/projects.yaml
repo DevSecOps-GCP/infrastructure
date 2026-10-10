@@ -6,10 +6,13 @@ metadata:
   namespace: argocd
 spec:
   description: Platform components
+  # Only these chart repositories (plus this repo) may be deployed as platform components.
   sourceRepos:
     - https://github.com/DevSecOps-GCP/infrastructure
-    - https://*.github.io/*
-    - https://charts.*
+    - https://charts.jetstack.io
+    - https://helm.releases.hashicorp.com
+    - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
   destinations:
     - server: "*"
       namespace: "*"
