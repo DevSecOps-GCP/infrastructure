@@ -24,7 +24,7 @@ spec:
             matchExpressions:
               - key: kubernetes.io/metadata.name
                 operator: In
-                values: [argocd, vault]
+                values: [argocd, monitoring, vault]
     - name: http
       protocol: HTTP
       port: 80

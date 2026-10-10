@@ -1,0 +1,415 @@
+{
+  "uid": "learnhub-prod",
+  "title": "LearnHub (prod)",
+  "tags": [
+    "learnhub",
+    "prod"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Requests per second by status",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (status) (rate(http_request_duration_seconds_count{namespace=\"learnhub\"}[5m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Latency by route (p50 / p95)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"learnhub\"}[5m])))",
+          "legendFormat": "p95 {{route}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"learnhub\"}[5m])))",
+          "legendFormat": "p50 all"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "5xx error ratio",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum(rate(http_request_duration_seconds_count{namespace=\"learnhub\",status=~\"5..\"}[5m])) / clamp_min(sum(rate(http_request_duration_seconds_count{namespace=\"learnhub\"}[5m])), 1e-9)",
+          "legendFormat": "5xx"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Cache hit ratio",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum(rate(learnhub_cache_requests_total{namespace=\"learnhub\",result=\"hit\"}[15m])) / clamp_min(sum(rate(learnhub_cache_requests_total{namespace=\"learnhub\"}[15m])), 1e-9)",
+          "legendFormat": "hit"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Signups (24h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum(increase(learnhub_signups_total{namespace=\"learnhub\"}[24h]))",
+          "legendFormat": "signups"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Video plays (24h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 8,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum(increase(learnhub_video_views_total{namespace=\"learnhub\"}[24h]))",
+          "legendFormat": "plays"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Logins by result",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (result) (increase(learnhub_logins_total{namespace=\"learnhub\"}[5m]))",
+          "legendFormat": "{{result}}"
+        }
+      ],
+      "description": "rate_limited counts attempts blocked by the per-account and per-IP limits."
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Redis errors by operation",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (op) (increase(learnhub_redis_errors_total{namespace=\"learnhub\"}[5m]))",
+          "legendFormat": "{{op}}"
+        }
+      ],
+      "description": "The API keeps serving from Postgres when Redis fails; this shows how often."
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Pod CPU (cores)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (pod_name) (rate(kubernetes_io:container_cpu_core_usage_time{monitored_resource=\"k8s_container\",namespace_name=\"learnhub\"}[5m]))",
+          "legendFormat": "{{pod_name}}"
+        }
+      ],
+      "description": "GKE system metric (free), queried through Managed Prometheus."
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Pod memory (working set)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (pod_name) (kubernetes_io:container_memory_used_bytes{monitored_resource=\"k8s_container\",namespace_name=\"learnhub\",memory_type=\"non-evictable\"})",
+          "legendFormat": "{{pod_name}}"
+        }
+      ],
+      "description": "GKE system metric (free), queried through Managed Prometheus."
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Container restarts (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-prod"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-prod"
+          },
+          "expr": "sum by (pod_name) (increase(kubernetes_io:container_restart_count{monitored_resource=\"k8s_container\",namespace_name=\"learnhub\"}[1h]))",
+          "legendFormat": "{{pod_name}}"
+        }
+      ]
+    }
+  ]
+}

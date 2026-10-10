@@ -1,0 +1,38 @@
+# Prometheus, Alertmanager and Grafana on the ops cluster.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: system
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 92.2.0
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/kubernetes/helm/system/kube-prometheus-stack/values-ops.yaml
+    - repoURL: https://github.com/DevSecOps-GCP/infrastructure
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The operator's CRDs exceed the client-side apply annotation limit.
+      - ServerSideApply=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

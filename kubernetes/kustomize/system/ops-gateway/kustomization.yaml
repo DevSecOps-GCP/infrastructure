@@ -4,3 +4,5 @@ resources:
   - gateway.yaml
   - argocd.yaml
   - vault.yaml
+  - grafana.yaml
+  - prometheus.yaml
