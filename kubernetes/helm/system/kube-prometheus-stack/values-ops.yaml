@@ -70,11 +70,15 @@ grafana:
         timeInterval: 30s
         queryTimeout: 2m
         timeout: 120
+  # Grafana 13 idles around 230 MiB and spikes when rendering dashboards.
   resources:
-    requests: { cpu: 50m, memory: 128Mi }
-    limits: { memory: 256Mi }
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
 
-# GKE manages the control plane and Dataplane V2 replaces kube-proxy: nothing to scrape.
+# GKE manages the control plane, Dataplane V2 replaces kube-proxy and cluster DNS is
+# kube-dns (no CoreDNS): nothing to scrape.
+coreDns:
+  enabled: false
 kubeControllerManager:
   enabled: false
 kubeScheduler:
