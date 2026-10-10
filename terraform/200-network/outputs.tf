@@ -22,6 +22,14 @@ output "subnets" {
   }
 }
 
+output "vpn_subnet" {
+  value = {
+    name      = google_compute_subnetwork.vpn.name
+    self_link = google_compute_subnetwork.vpn.self_link
+    cidr      = google_compute_subnetwork.vpn.ip_cidr_range
+  }
+}
+
 output "private_services_range_name" {
   description = "allocated_ip_range for Cloud SQL / reserved_ip_range for Memorystore"
   value       = google_compute_global_address.private_services.name

@@ -21,6 +21,11 @@ variable "private_services_range" {
   type        = string
 }
 
+variable "vpn_range" {
+  description = "Subnet for the WireGuard VPN server"
+  type        = string
+}
+
 variable "proxy_only_range" {
   description = "Proxy-only subnet used by regional internal Application Load Balancers"
   type        = string
