@@ -1,0 +1,64 @@
+# Public entry point for the app: global external Application Load Balancer on the static
+# IP, certificate and SSL policy from terraform/220-global-ingress/apps/prod. The app's
+# HTTPRoutes live in its own namespace.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: app
+  namespace: public-ingress
+  annotations:
+    # Certificate Manager map; replaces tls.certificateRefs on the HTTPS listener.
+    networking.gke.io/certmap: app
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+  addresses:
+    - type: NamedAddress
+      value: app-gateway
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: app.devsecopsglobal.tech
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values: [learnhub]
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-redirect
+  namespace: public-ingress
+spec:
+  parentRefs:
+    - name: app
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+---
+apiVersion: networking.gke.io/v1
+kind: GCPGatewayPolicy
+metadata:
+  name: app-tls
+  namespace: public-ingress
+spec:
+  default:
+    sslPolicy: app-gateway-tls12
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: app

@@ -1,0 +1,36 @@
+# Chart from the app repository, production values from this one.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: learnhub-backend
+  namespace: argocd
+  annotations:
+    # After the namespace, Gateway and ComputeClass apps (wave 0); sync retries cover
+    # the time those take to become ready.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: apps
+  sources:
+    - repoURL: https://github.com/DevSecOps-GCP/devsecopsglobal
+      targetRevision: main
+      path: deploy/backend
+      helm:
+        releaseName: learnhub-backend
+        valueFiles:
+          - $values/kubernetes/helm/apps/learnhub-backend/values-prod.yaml
+    - repoURL: https://github.com/DevSecOps-GCP/infrastructure
+      targetRevision: main
+      ref: values
+  destination:
+    name: prod
+    namespace: learnhub
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

@@ -1,0 +1,86 @@
+# Production values for deploy/backend in DevSecOps-GCP/devsecopsglobal.
+image:
+  # Release commit; promotion PRs from the app repository update it.
+  tag: 6e9681a960484af860875b84993010cbadc4edf8
+
+computeClass: spot-first
+
+serviceAccount:
+  # terraform/540-gcs/apps/prod: backend_service_account
+  gcpServiceAccount: learnhub-backend@devsecopsglobal-prod.iam.gserviceaccount.com
+
+config:
+  TRUSTED_XFF_HOPS: "2"
+  GCS_BUCKET: devsecopsglobal-prod-videos
+  DB_HOST: postgres.internal.devsecopsglobal.tech
+  DB_PORT: "5432"
+  DB_NAME: learnhub
+  DB_USER: learnhub
+  DB_SSL: verify-ca
+  DB_CA_CERT: /etc/learnhub/ca/postgres.pem
+  # The Memorystore server certificate names the instance IP, so clients verify against it.
+  REDIS_HOST: 10.50.5.75
+  REDIS_PORT: "6378"
+  REDIS_TLS: "true"
+  REDIS_CA_CERT: /etc/learnhub/ca/redis.pem
+
+# Public CA certificates: terraform/560-sql (server_ca_cert) and terraform/550-redis
+# (server_ca_certs).
+caCerts:
+  postgres.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDcTCCAlmgAwIBAgIBADANBgkqhkiG9w0BAQsFADBwMS0wKwYDVQQuEyQ1ZTY5
+    MjI0ZS1kNjM1LTQ0YzItYWQ1ZC03ZGFiZGFjYjdlNGUxHDAaBgNVBAMTE0Nsb3Vk
+    IFNRTCBTZXJ2ZXIgQ0ExFDASBgNVBAoTC0dvb2dsZSwgSW5jMQswCQYDVQQGEwJV
+    UzAeFw0yNjEwMTAxMTMyMTlaFw0zNjEwMDcxMTMzMTlaMHAxLTArBgNVBC4TJDVl
+    NjkyMjRlLWQ2MzUtNDRjMi1hZDVkLTdkYWJkYWNiN2U0ZTEcMBoGA1UEAxMTQ2xv
+    dWQgU1FMIFNlcnZlciBDQTEUMBIGA1UEChMLR29vZ2xlLCBJbmMxCzAJBgNVBAYT
+    AlVTMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuRatUwrh6nnIwRMD
+    J6LkD2toxQy7BiJqlOO/AyEYcR5jFV92K/ZVBee7hHlmQlqjYXjUAQ34iijhVxMp
+    l2TPOnLYReA7ZOHB3k2dSDB2ZfMu40lk4i7Tv9mJ7i2+bbKFy/3p/zR9wB7tbcDD
+    5OND73GPtaDSth6oecJnr/ljIqokG2UdsQklDKoOlZo0sZCU0VbZtzWZNze0t4uE
+    XijjiePCEUbZ7IjiPuLQSmBjzkmPXRLioPUc3Lva+98yPzSFIv5rdAP/uDutTpKc
+    Rn/s+zEMMfD3Hw7lIU/x46I3VA4vCJz3smoPZax7hnXDpmXjxZx5J/om9TIepJ6H
+    RRU/nwIDAQABoxYwFDASBgNVHRMBAf8ECDAGAQH/AgEAMA0GCSqGSIb3DQEBCwUA
+    A4IBAQAF0SifAtAblWHmQT7TCITE8lpaDMEwkWcMYyQ8m7EZoZLKFByPD5RTy3r9
+    NDn6b8kwizV6bJ6hZ3qflgkUkyskpA+KEnCR4hN6hujt2wNd0zS2xGC1qmbWPhoL
+    DpMS/t/IS31q/o0NRP4LeHMZAmLUcQr7qZ1WZFtKOSgxTO94wroOQGFhbNUenG4n
+    GKs6Jcmzf2i0p34cY5PaZqaFfLK9i6ElRJoduMWmtbmTdUQx2hg1JeeJ5Ccnz8VC
+    SwryvRlHRaJ7kKG3bQEW36wjaTpESWENetpk5zHrO2GNxdY2GP7sg3o7aFiD/I7l
+    YS24/NKzu6cSMs1pHmXNz6l1TSdV
+    -----END CERTIFICATE-----
+  redis.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIID7TCCAtWgAwIBAgIBADANBgkqhkiG9w0BAQsFADCBhTEtMCsGA1UELhMkMzhh
+    MTRkMjItYzE4My00NDJkLWJjNGMtZDJlZmI4YTE0YWRhMTEwLwYDVQQDEyhHb29n
+    bGUgQ2xvdWQgTWVtb3J5c3RvcmUgUmVkaXMgU2VydmVyIENBMRQwEgYDVQQKEwtH
+    b29nbGUsIEluYzELMAkGA1UEBhMCVVMwHhcNMjYxMDEwMTA1NjQ4WhcNMzYxMDA3
+    MTA1NzQ4WjCBhTEtMCsGA1UELhMkMzhhMTRkMjItYzE4My00NDJkLWJjNGMtZDJl
+    ZmI4YTE0YWRhMTEwLwYDVQQDEyhHb29nbGUgQ2xvdWQgTWVtb3J5c3RvcmUgUmVk
+    aXMgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUsIEluYzELMAkGA1UEBhMCVVMw
+    ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCF6b4OdMJ8Ye785W/QjW/r
+    mb4LZsRd0w0F8SB20aeXFwXNlYD45KqZiR+gPshTxaFAqkMCiVd0l82R+pd7ybCa
+    DjQA9VDIYLIC7+DFPtXGZwlueNK+S0xqxRBqb4Xa0IAVrTivGUO4maRZLuubevmW
+    1te5FHx85VKU0Tqg156MmgCX1sy0mUnN6RBUenigRc4DxckAHNYjknfAKM6a0GV4
+    KPGU7bGRnyCS5xxkOOkIEUtaRkWG35uxKoMr5P63uiI762fUCSGXYNRfbwGTiXyc
+    gdS3rWZocq8TAVxAnGo3tyRBNxTSoV2L4lOriaTZBLcsdyOUeO9epIT+li20jKv7
+    AgMBAAGjZjBkMB8GA1UdIwQYMBaAFP26PgKoo+HVnt2knRnGd5LDjWAgMBIGA1Ud
+    EwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBT9uj4CqKPh
+    1Z7dpJ0ZxneSw41gIDANBgkqhkiG9w0BAQsFAAOCAQEAFKwUQlk1GQMOU9sinZqm
+    tDA9MJDdoHoLTS2I8yBRYZOr361kDaGtYbSDeku1RZEllscNarVJVQ+Xi+66KttD
+    QkMQpithNlwKmT6EZNenF97vg0BV8GxEXp+K4uu/vWWefBpD6ytIld16Gda10dAv
+    qT3G5SRllLP/j45VEcmT3pGOFyODaZG6vU9GW1S/CCfaWcRmQPCjtfV0+ZaXbb4G
+    EOc1D3ks6V+cXGI1AH4FgpkRiLKxpQySHrdaMbkpJ4WheyFu//9CgF8iid8HTXY9
+    Db9JwjVQTi96dnbTeOy90Kk4FSj7l1RrHRpZSO0Uuc6gM/ZxsOaYlYdJkCgdUj0Q
+    mw==
+    -----END CERTIFICATE-----
+
+route:
+  enabled: true
+  hostname: app.devsecopsglobal.tech
+  gateway:
+    name: app
+    namespace: public-ingress
+
+networkPolicy:
+  privateServicesCidr: 10.50.0.0/20
