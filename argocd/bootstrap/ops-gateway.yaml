@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ops-gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: system
+  source:
+    repoURL: https://github.com/DevSecOps-GCP/infrastructure
+    targetRevision: main
+    path: kubernetes/kustomize/system/ops-gateway
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: internal-ingress
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # Gateway API and GKE policy CRDs are installed by the cluster's Gateway API setting.
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

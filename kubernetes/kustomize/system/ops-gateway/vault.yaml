@@ -1,0 +1,50 @@
+# Service for the Gateway: HTTPS to the active Vault node only.
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-gateway
+  namespace: vault
+spec:
+  selector:
+    app.kubernetes.io/name: vault
+    component: server
+    vault-active: "true"
+  ports:
+    - name: https
+      port: 8200
+      targetPort: 8200
+      appProtocol: HTTPS
+---
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  default:
+    config:
+      type: HTTPS
+      httpsHealthCheck:
+        port: 8200
+        requestPath: /v1/sys/health
+  targetRef:
+    group: ""
+    kind: Service
+    name: vault-gateway
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  parentRefs:
+    - name: ops
+      namespace: internal-ingress
+      sectionName: https
+  hostnames:
+    - vault.internal.devsecopsglobal.tech
+  rules:
+    - backendRefs:
+        - name: vault-gateway
+          port: 8200
