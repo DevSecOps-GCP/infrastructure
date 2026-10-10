@@ -8,6 +8,11 @@ variable "rate_limit_per_minute" {
   type        = number
 }
 
+variable "cloud_armor_enabled" {
+  description = "Cloud Armor policy for the app; needs a non-zero security policies quota in the prod project"
+  type        = bool
+}
+
 variable "waf_enabled" {
   description = "Preconfigured OWASP WAF rules; they need the advanced-rules quota, which is 0 on free-trial billing accounts"
   type        = bool
