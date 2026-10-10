@@ -3,8 +3,6 @@ image:
   # Release commit; promotion PRs from the app repository update it.
   tag: 6e9681a960484af860875b84993010cbadc4edf8
 
-computeClass: spot-first
-
 serviceAccount:
   # terraform/540-gcs/apps/prod: backend_service_account
   gcpServiceAccount: learnhub-backend@devsecopsglobal-prod.iam.gserviceaccount.com
