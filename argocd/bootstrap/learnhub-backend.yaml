@@ -28,6 +28,9 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      # VaultAuth and VaultStaticSecret CRDs come from the vault-secrets-operator app.
+      - SkipDryRunOnMissingResource=true
     retry:
       limit: 10
       backoff:
