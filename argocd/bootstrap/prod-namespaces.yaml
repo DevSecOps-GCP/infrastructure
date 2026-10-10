@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod-namespaces
+  namespace: argocd
+spec:
+  project: system
+  source:
+    repoURL: https://github.com/DevSecOps-GCP/infrastructure
+    targetRevision: main
+    path: kubernetes/kustomize/system/prod-namespaces
+  destination:
+    name: prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

@@ -18,7 +18,12 @@ dex:
 notifications:
   enabled: false
 
+# The controller and server reach managed clusters as this Google service account
+# (Workload Identity, argocd-k8s-auth gcp).
 controller:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: argocd@devsecopsglobal-ops.iam.gserviceaccount.com
   resources:
     requests: { cpu: 250m, memory: 512Mi }
     limits: { memory: 1Gi }
@@ -29,6 +34,9 @@ repoServer:
     limits: { memory: 512Mi }
 
 server:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: argocd@devsecopsglobal-ops.iam.gserviceaccount.com
   service:
     type: ClusterIP
   resources:
