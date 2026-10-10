@@ -82,3 +82,13 @@ route:
 
 networkPolicy:
   privateServicesCidr: 10.50.0.0/20
+
+# Secrets synced by the Vault Secrets Operator into learnhub-secrets. Vault side (set up in
+# the UI): KV v2 "secret", path prod/learnhub, JWT auth "jwt-prod" trusting this cluster's
+# service account issuer, role "learnhub" bound to learnhub/learnhub-backend.
+vault:
+  enabled: true
+  authMount: jwt-prod
+  role: learnhub
+  kvMount: secret
+  path: prod/learnhub

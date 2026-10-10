@@ -1,0 +1,4 @@
+# Vault on the ops cluster, through the internal Gateway (publicly trusted certificate).
+defaultVaultConnection:
+  enabled: true
+  address: https://vault.internal.devsecopsglobal.tech
