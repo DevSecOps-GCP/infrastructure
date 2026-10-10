@@ -1,0 +1,76 @@
+global:
+  tlsDisable: false
+
+injector:
+  enabled: false
+
+ui:
+  enabled: true
+  serviceType: ClusterIP
+
+server:
+  serviceAccount:
+    create: true
+    name: vault
+    annotations:
+      iam.gke.io/gcp-service-account: vault-server@devsecopsglobal-ops.iam.gserviceaccount.com
+
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+  dataStorage:
+    enabled: true
+    size: 5Gi
+    storageClass: standard-rwo
+
+  # Let's Encrypt certificate issued by cert-manager (kubernetes/kustomize/system/vault).
+  extraVolumes:
+    - type: secret
+      name: vault-tls
+
+  # The certificate is for the internal hostname; local CLI calls go to 127.0.0.1.
+  extraEnvironmentVars:
+    VAULT_TLS_SERVER_NAME: vault.internal.devsecopsglobal.tech
+
+  standalone:
+    enabled: false
+
+  ha:
+    enabled: true
+    replicas: 1
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        disable_mlock = true
+
+        listener "tcp" {
+          address         = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_cert_file   = "/vault/userconfig/vault-tls/tls.crt"
+          tls_key_file    = "/vault/userconfig/vault-tls/tls.key"
+          telemetry {
+            unauthenticated_metrics_access = true
+          }
+        }
+
+        storage "raft" {
+          path = "/vault/data"
+        }
+
+        # Unsealed by Cloud KMS on every start; no human unseal keys.
+        seal "gcpckms" {
+          project    = "devsecopsglobal-ops"
+          region     = "me-central1"
+          key_ring   = "vault"
+          crypto_key = "vault-unseal"
+        }
+
+        service_registration "kubernetes" {}
+
+        telemetry {
+          prometheus_retention_time = "30s"
+          disable_hostname          = true
+        }
