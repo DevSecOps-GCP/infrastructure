@@ -50,6 +50,10 @@ resource "google_container_cluster" "this" {
     channel = "REGULAR"
   }
 
+  gateway_api_config {
+    channel = "CHANNEL_STANDARD"
+  }
+
   workload_identity_config {
     workload_pool = "${local.project}.svc.id.goog"
   }

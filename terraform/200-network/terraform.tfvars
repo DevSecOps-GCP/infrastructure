@@ -7,4 +7,5 @@ subnets = {
 }
 
 private_services_range = "10.50.0.0/20"
+proxy_only_range       = "10.10.4.0/23"
 internal_domain        = "internal.devsecopsglobal.tech"

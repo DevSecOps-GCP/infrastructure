@@ -1,0 +1,1 @@
+hostnames = ["argocd", "vault"]
