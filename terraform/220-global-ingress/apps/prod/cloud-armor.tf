@@ -1,3 +1,18 @@
+# OWASP ModSecurity CRS 3.3 at sensitivity 1, the level with the fewest false positives.
+# Method enforcement is left out because the API uses PUT, PATCH and DELETE.
+locals {
+  waf_rules = {
+    "1000" = {
+      description = "OWASP CRS: SQLi, XSS, LFI, RFI, RCE"
+      rule_sets   = ["sqli", "xss", "lfi", "rfi", "rce"]
+    }
+    "1100" = {
+      description = "OWASP CRS: scanner detection, protocol attacks, session fixation"
+      rule_sets   = ["scannerdetection", "protocolattack", "sessionfixation"]
+    }
+  }
+}
+
 # Attached to the app's backend services through a GCPBackendPolicy. Rules are evaluated
 # by priority and the first match wins, so the WAF rules run before the rate limit.
 resource "google_compute_security_policy" "edge" {
@@ -17,38 +32,20 @@ resource "google_compute_security_policy" "edge" {
     }
   }
 
-  # OWASP ModSecurity CRS 3.3 at sensitivity 1, the level with the fewest false positives.
-  # Method enforcement is left out because the API uses PUT, PATCH and DELETE.
-  rule {
-    action      = "deny(403)"
-    priority    = 1000
-    description = "OWASP CRS: SQLi, XSS, LFI, RFI, RCE"
+  dynamic "rule" {
+    for_each = var.waf_enabled ? local.waf_rules : {}
 
-    match {
-      expr {
-        expression = join(" || ", [
-          "evaluatePreconfiguredWaf('sqli-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('xss-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('lfi-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('rfi-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('rce-v33-stable', {'sensitivity': 1})",
-        ])
-      }
-    }
-  }
+    content {
+      action      = "deny(403)"
+      priority    = tonumber(rule.key)
+      description = rule.value.description
 
-  rule {
-    action      = "deny(403)"
-    priority    = 1100
-    description = "OWASP CRS: scanner detection, protocol attacks, session fixation"
-
-    match {
-      expr {
-        expression = join(" || ", [
-          "evaluatePreconfiguredWaf('scannerdetection-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('protocolattack-v33-stable', {'sensitivity': 1})",
-          "evaluatePreconfiguredWaf('sessionfixation-v33-stable', {'sensitivity': 1})",
-        ])
+      match {
+        expr {
+          expression = join(" || ", [
+            for set in rule.value.rule_sets : "evaluatePreconfiguredWaf('${set}-v33-stable', {'sensitivity': 1})"
+          ])
+        }
       }
     }
   }
