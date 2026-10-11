@@ -39,3 +39,14 @@ variable "wireguard_instance" {
   description = "The only VM in the folder allowed an external IP"
   type        = string
 }
+
+variable "operator_email" {
+  description = "Human operator granted read-only access to the folder; set with TF_VAR_operator_email at apply time"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+$", var.operator_email))
+    error_message = "operator_email must be an email address."
+  }
+}
