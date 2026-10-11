@@ -12,3 +12,10 @@ configMapGenerator:
       disableNameSuffixHash: true
       labels:
         grafana_dashboard: "1"
+  - name: dashboard-learnhub-api
+    files:
+      - dashboards/learnhub-api.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
